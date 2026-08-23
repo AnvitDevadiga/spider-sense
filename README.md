@@ -32,65 +32,14 @@ By combining automated web data extraction with **scikit-learn machine learning*
 ## 🏛️ System Architecture
 
 ```mermaid
-graph TD
-    subgraph Client_App["✨ Spider-Sense Frontend (Next.js 14 + TailwindCSS + Lucide Icons)"]
-        UI_SEARCH["Instant Search Bar & Real-Time Radar"]
-        UI_MATRIX["Multi-Store Price Matrix (/compare)"]
-        UI_DETAIL["Price History & 7-Day ML Forecast Modal"]
-        UI_ALERTS["Flash Drop Sentinel (/alerts)"]
-        UI_HEAL["AI Scraper Self-Healing Modal"]
-    end
-
-    subgraph Backend_Engine["⚡ FastAPI Backend Engine (Python 3.12)"]
-        API_SEARCH["Search Router (/api/search)"]
-        STATUS_POLL["Live Progress Poller (/api/product/status)"]
-        DISPATCHER["Multi-Collector Dispatcher (Parallel Threads)"]
-        WEBHOOK_GW["Webhook Gateway (/webhook/{source})"]
-        POLL_WORKER["Background Polling Fallback Worker"]
-        NORMALIZER["Data Normalizer & Sanitizer (normalizer.py)"]
-        DB[(SQLite / PostgreSQL Engine)]
-        PREDICTOR["scikit-learn Ensemble Forecaster (predictor.py)"]
-        SENTINEL["Price Drop Sentinel (alerts.py)"]
-    end
-
-    subgraph Bright_Data_Cloud["🌐 Bright Data Scraper Studio & DCA"]
-        BD_GOOGLE["#1 Google Scout Collector (c_mt4jdk882ftyi0l2tq)"]
-        BD_AMZ["#2 Amazon Collector (c_mt3w3rtn12g4br728n)"]
-        BD_WMT["#3 Walmart Collector (c_mt3wf5q4kwqm2mhi)"]
-        BD_BBY["#4 Best Buy Collector (c_mt3vgsej1ydszi4zhf)"]
-        BD_CLI["AI Self-Healing Engine (bdata scraper heal)"]
-    end
-
-    UI_SEARCH -->|POST /api/search (202 Accepted)| API_SEARCH
-    UI_SEARCH -.->|GET /api/product/status (Polling)| STATUS_POLL
-    STATUS_POLL <--> DB
-    API_SEARCH -->|Trigger Search Query| BD_GOOGLE
-    API_SEARCH -->|Parallel Dispatch| DISPATCHER
-
-    BD_GOOGLE -->|POST Webhook / Delivery| WEBHOOK_GW
-    WEBHOOK_GW --> DISPATCHER
-
-    DISPATCHER -->|POST /dca/trigger| BD_AMZ
-    DISPATCHER -->|POST /dca/trigger| BD_WMT
-    DISPATCHER -->|POST /dca/trigger| BD_BBY
-
-    BD_AMZ -->|Delivery| WEBHOOK_GW
-    BD_WMT -->|Delivery| WEBHOOK_GW
-    BD_BBY -->|Delivery| WEBHOOK_GW
-
-    DISPATCHER -.->|Async Fallback Polling| POLL_WORKER
-    POLL_WORKER -->|Fetch Dataset| NORMALIZER
-
-    WEBHOOK_GW --> NORMALIZER
-    NORMALIZER --> DB
-    DB --> PREDICTOR
-    PREDICTOR --> SENTINEL
-    SENTINEL --> DB
-
-    DB --> UI_MATRIX
-    DB --> UI_DETAIL
-    DB --> UI_ALERTS
-    UI_HEAL -->|bdata scraper heal| BD_CLI
+graph LR
+    A[🕷️ User] -->|Searches product| B[⚡ Backend]
+    B -->|Scrapes prices| C[🌐 Amazon · Walmart · Best Buy]
+    C -->|Raw data| B
+    B -->|Cleans and saves| D[(💾 Database)]
+    D -->|Predicts future prices| E[🤖 ML Engine]
+    E -->|Detects deals| F[🚨 Alerts]
+    D -->|Shows results| A
 ```
 
 ---
@@ -307,7 +256,3 @@ In full transparency and alignment with the Bright Data Hackathon guidelines, **
 - All Bright Data Scraper Studio collector scripts, parser selectors, and webhook pipeline architectures were authored, configured, and verified by the team.
 
 ---
-
-## 📄 License
-
-MIT License © 2026 Spider-Sense Intelligence Team. Built for the Bright Data Into the Scrape-Verse Hackathon.
