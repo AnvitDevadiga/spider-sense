@@ -1,0 +1,36 @@
+{
+  "_comment": "Example structured output from the Amazon custom scraper in Bright Data Scraper Studio. This is what arrives at POST /webhook/amazon on our FastAPI backend.",
+  "source": "amazon",
+  "scraped_at": "2025-08-19T14:23:11Z",
+  "results_count": 2,
+  "results": [
+    {
+      "asin": "B0BSHFQXR9",
+      "title": "Marvel's Spider-Man 2 — Standard Edition (PS5)",
+      "price": 49.99,
+      "currency": "USD",
+      "rating": 4.7,
+      "review_count": 8432,
+      "availability": "In Stock",
+      "image_url": "https://m.media-amazon.com/images/I/example.jpg",
+      "url": "https://www.amazon.com/dp/B0BSHFQXR9",
+      "brand": "Sony",
+      "category": "Video Games",
+      "scraped_at": "2025-08-19T14:23:11Z"
+    },
+    {
+      "asin": "B09JLH4X8X",
+      "title": "Nintendo Switch – OLED Model",
+      "price": 349.00,
+      "currency": "USD",
+      "rating": 4.8,
+      "review_count": 24391,
+      "availability": "In Stock",
+      "image_url": "https://m.media-amazon.com/images/I/example2.jpg",
+      "url": "https://www.amazon.com/dp/B09JLH4X8X",
+      "brand": "Nintendo",
+      "category": "Video Games",
+      "scraped_at": "2025-08-19T14:23:11Z"
+    }
+  ]
+}

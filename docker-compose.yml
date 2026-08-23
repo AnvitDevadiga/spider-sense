@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./spider_sense.db
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - BRIGHT_DATA_API_KEY=${BRIGHT_DATA_API_KEY:-}
+      - BRIGHTDATA_AMAZON_COLLECTOR_ID=${BRIGHTDATA_AMAZON_COLLECTOR_ID:-}
+      - BRIGHTDATA_WALMART_COLLECTOR_ID=${BRIGHTDATA_WALMART_COLLECTOR_ID:-}
+      - BRIGHTDATA_BESTBUY_COLLECTOR_ID=${BRIGHTDATA_BESTBUY_COLLECTOR_ID:-}
+      - BRIGHTDATA_GOOGLE_COLLECTOR_ID=${BRIGHTDATA_GOOGLE_COLLECTOR_ID:-}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+    restart: unless-stopped

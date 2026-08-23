@@ -1,0 +1,13 @@
+[tool.pyright]
+venvPath = "."
+venv = "backend/venv"
+extraPaths = ["backend", "backend/venv/lib/python3.12/site-packages"]
+
+[tool.pyrefly]
+python-interpreter = "backend/venv/bin/python"
+site-packages = ["backend/venv/lib/python3.12/site-packages"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+
