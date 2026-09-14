@@ -62,7 +62,7 @@ export default function Footer() {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link
-                  href="/dashboard"
+                  href="/"
                   className="flex items-center justify-between text-gray-400 hover:text-white transition group"
                 >
                   <span>Intelligence Command Center</span>
@@ -71,7 +71,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/compare"
+                  href="/#results"
                   className="flex items-center justify-between text-gray-400 hover:text-white transition group"
                 >
                   <span>Multi-Store Price Matrix</span>

@@ -6,6 +6,7 @@ Triggers real Bright Data collectors and handles dispatching.
 from __future__ import annotations
 
 import os
+import json
 import time
 import logging
 import httpx
@@ -33,7 +34,7 @@ def get_collector_id(retailer: str) -> str:
 
 def get_api_token() -> str:
     """Returns the configured Bright Data API token."""
-    return os.getenv("BRIGHT_DATA_API_KEY", "1a84b3b4-3d82-408f-9922-0ae4ecc8f096").strip()
+    return os.getenv("BRIGHT_DATA_API_KEY", "").strip()
 
 
 def is_configured() -> bool:

@@ -7,6 +7,7 @@ and AI-powered self-healing via the Bright Data CLI.
 from __future__ import annotations
 
 import random
+import os
 import subprocess
 import shutil
 import logging
@@ -152,7 +153,10 @@ def heal_scraper(req: HealRequest | None = None):
 
     # Try live Bright Data CLI if installed
     npx_path = shutil.which("npx")
-    if npx_path and brightdata_client.is_configured():
+    # Healing is an explicit operational action and can take a minute or more.
+    # Keep local/API requests deterministic unless live CLI healing is enabled.
+    live_heal_enabled = os.getenv("ENABLE_LIVE_SCRAPER_HEAL", "").lower() in {"1", "true", "yes"}
+    if npx_path and brightdata_client.is_configured() and live_heal_enabled:
         try:
             cmd = ["npx", "-p", "@brightdata/cli", "bdata", "scraper", "heal", collector_id, what_broke, "--auto-approve"]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)

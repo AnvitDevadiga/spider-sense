@@ -1,7 +1,7 @@
 import os
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import get_db, Product, PriceHistory, Alert
+from database import get_db, Product, PriceHistory, Alert, PriceWatch
 
 router = APIRouter(tags=["system"])
 
@@ -84,5 +84,6 @@ def clear_history(db: Session = Depends(get_db)):
     db.query(Product).delete()
     db.query(PriceHistory).delete()
     db.query(Alert).delete()
+    db.query(PriceWatch).delete()
     db.commit()
     return {"status": "success", "message": "History cleared successfully"}

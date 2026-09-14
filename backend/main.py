@@ -7,7 +7,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, Depends, HTTPException, Request, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -347,7 +347,7 @@ def _ingest_retailer_item(item: dict, source: str, db: Session) -> Product:
 
 
 @app.post("/api/search")
-def search_product(req: SearchRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def search_product(req: SearchRequest, db: Session = Depends(get_db)):
     raw_query = req.query.strip()
     if not raw_query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
@@ -355,7 +355,9 @@ def search_product(req: SearchRequest, background_tasks: BackgroundTasks, db: Se
     stores_result, comparison = _match_products_for_query(raw_query, db)
     ready_count = sum(1 for data in stores_result.values() if data.get("status") == "ready")
 
-    if ready_count > 0:
+    # Only a complete three-store result is a true cache hit. Previously a single
+    # cached retailer short-circuited the search and left the other collectors idle.
+    if ready_count == 3:
         logger.info(
             f"[Search] Cache hit for '{raw_query}' ({ready_count} store(s) ready) — skipping Bright Data"
         )
@@ -366,22 +368,26 @@ def search_product(req: SearchRequest, background_tasks: BackgroundTasks, db: Se
                 "query": raw_query,
                 "cached": True,
                 "message": (
-                    f"Instant cache hit — {ready_count} store(s) already tracked for '{raw_query}'."
+                    f"Instant cache hit — all {ready_count} stores are tracked for '{raw_query}'."
                 ),
                 "stores": stores_result,
                 "comparison": comparison,
             },
         )
 
-    background_tasks.add_task(_async_dispatch_search, raw_query)
+    # Starlette background tasks are still awaited by test clients and some
+    # gateways. A daemon worker keeps the 202 response genuinely non-blocking.
+    threading.Thread(target=_async_dispatch_search, args=(raw_query,), daemon=True).start()
     return JSONResponse(
         status_code=202,
         content={
-            "status": "scraping_started",
+            "status": "scraping_started" if ready_count == 0 else "scraping_remaining_stores",
             "query": raw_query,
             "cached": False,
+            "stores": stores_result,
+            "comparison": comparison,
             "message": (
-                f"Spider-bots dispatched! Hunting for '{raw_query}' across Amazon, Walmart, and Best Buy."
+                f"Spider-bots dispatched for '{raw_query}'. {ready_count} of 3 stores already ready."
             ),
         },
     )

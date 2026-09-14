@@ -91,10 +91,10 @@ export default function PriceHistoryModal({ productId, isOpen, onClose }: PriceH
                     Machine Learning Intelligence
                   </div>
                   <h2 className="text-xl sm:text-2xl font-extrabold text-white line-clamp-1 tracking-tight">
-                    {data.title}
+                    {data.product?.title || "Price intelligence"}
                   </h2>
                   <p className="text-gray-400 text-xs mt-1 font-mono">
-                    {data.brand || "Verified Retailer"} • {data.category || "Consumer Electronics"}
+                    {data.product?.brand || "Verified Retailer"} • {data.product?.category || "Consumer Electronics"}
                   </p>
                 </div>
 
@@ -108,7 +108,7 @@ export default function PriceHistoryModal({ productId, isOpen, onClose }: PriceH
                         Current Price
                       </p>
                       <p className="text-xl sm:text-2xl font-extrabold font-mono text-white">
-                        {formatUsd(data.price_history?.[0]?.price || 0)}
+                        {formatUsd(data.product?.current_price || data.price_history?.at(-1)?.price || 0)}
                       </p>
                     </div>
                   </div>

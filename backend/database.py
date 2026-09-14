@@ -68,6 +68,18 @@ class Alert(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
+class PriceWatch(Base):
+    """A durable, idempotent subscription to price changes for one product."""
+
+    __tablename__ = "price_watches"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    product_id: Mapped[str] = mapped_column(String, index=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    active: Mapped[int] = mapped_column(Integer, default=1, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
 Base.metadata.create_all(bind=engine)
 
 

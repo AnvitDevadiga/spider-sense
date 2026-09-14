@@ -130,7 +130,7 @@ export default function Navbar() {
                 <span>HEALER</span>
               </button>
               <div className="absolute right-0 top-full mt-2 w-80 p-4 rounded-xl bg-black border border-spidey-cyan/30 text-gray-300 text-xs leading-relaxed shadow-[0_0_30px_rgba(0,242,254,0.15)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                <p className="italic font-serif">"You write a scraper, it works, and a week later the site changes its layout and everything breaks quietly. Build one that repairs itself instead, run it from your coding agent, and spend the week turning the data into something real."</p>
+                <p className="italic font-serif">&ldquo;You write a scraper, it works, and a week later the site changes its layout and everything breaks quietly. Build one that repairs itself instead, run it from your coding agent, and spend the week turning the data into something real.&rdquo;</p>
                 <p className="mt-2 text-right text-[10px] text-spidey-cyan font-mono uppercase tracking-widest">- Project Rules</p>
               </div>
             </div>

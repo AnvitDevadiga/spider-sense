@@ -286,6 +286,112 @@ def compare_across_retailers(db: Session = Depends(get_db)):
         )
     return comparisons
 
+
+DEMO_PRODUCTS = [
+    ("airpods4", "Apple AirPods 4 with Active Noise Cancellation", "Apple", "Headphones", 179.00),
+    ("sonywh1000xm5", "Sony WH-1000XM5 Wireless Noise Canceling Headphones", "Sony", "Headphones", 349.99),
+    ("switcholed", "Nintendo Switch OLED Console", "Nintendo", "Gaming", 349.00),
+    ("sandiskextreme", "SanDisk Extreme Portable SSD 1TB", "SanDisk", "Storage", 94.99),
+]
+
+DEMO_STORES = {
+    "amazon": (0.00, "https://www.amazon.com/dp/"),
+    "walmart": (-7.50, "https://www.walmart.com/ip/"),
+    "bestbuy": (5.00, "https://www.bestbuy.com/site/"),
+}
+
+
+@router.post("/demo/seed")
+def seed_demo_data(db: Session = Depends(get_db)):
+    """Creates a repeatable comparison dataset for local demos and empty states."""
+    created = 0
+    now = _utcnow()
+
+    for model, title, brand, category, base_price in DEMO_PRODUCTS:
+        for source, (offset, url_prefix) in DEMO_STORES.items():
+            product_id = f"{source}:demo-{model}"
+            product = db.query(Product).filter(Product.id == product_id).first()
+            current_price = round(base_price + offset, 2)
+            if not product:
+                product = Product(
+                    id=product_id,
+                    source=source,
+                    source_id=f"demo-{model}",
+                    title=title,
+                    price=current_price,
+                    brand=brand,
+                    category=category,
+                    image_url=None,
+                    product_url=f"{url_prefix}demo-{model}",
+                    availability="In Stock",
+                    rating=4.7,
+                    review_count=1842,
+                    scraped_at=now,
+                )
+                db.add(product)
+                created += 1
+
+            has_history = db.query(PriceHistory).filter(PriceHistory.product_id == product_id).first()
+            if not has_history:
+                for days_ago in range(29, -1, -1):
+                    drift = ((days_ago % 7) - 3) * 0.55 + days_ago * 0.12
+                    db.add(PriceHistory(
+                        product_id=product_id,
+                        price=round(current_price + drift, 2),
+                        currency="USD",
+                        availability="In Stock",
+                        rating=4.7,
+                        review_count=1842,
+                        raw_data={"demo": True},
+                        scraped_at=now - timedelta(days=days_ago),
+                    ))
+
+    db.commit()
+    return {"status": "success", "products_seeded": created or len(DEMO_PRODUCTS) * len(DEMO_STORES)}
+
+
+@router.post("/demo/simulate-drop")
+def simulate_demo_drop(db: Session = Depends(get_db)):
+    """Records a real history point and runs the same alert engine as a webhook."""
+    product = db.query(Product).order_by(Product.created_at.asc()).first()
+    if not product:
+        seed_demo_data(db)
+        product = db.query(Product).order_by(Product.created_at.asc()).first()
+    if not product:
+        raise HTTPException(500, "Could not prepare a product for the demo")
+
+    latest = (
+        db.query(PriceHistory)
+        .filter(PriceHistory.product_id == product.id)
+        .order_by(PriceHistory.scraped_at.desc())
+        .first()
+    )
+    old_price = float(latest.price if latest and latest.price else product.price or 100.0)
+    new_price = round(old_price * 0.75, 2)
+    point = PriceHistory(
+        product_id=product.id,
+        price=new_price,
+        currency="USD",
+        availability="In Stock",
+        rating=product.rating,
+        review_count=product.review_count,
+        raw_data={"demo": True, "simulated_drop": True},
+        scraped_at=_utcnow(),
+    )
+    product.price = new_price
+    product.scraped_at = point.scraped_at
+    db.add(point)
+    db.flush()
+    alert = evaluate_alerts(db, product, point)
+    db.commit()
+    return {
+        "status": "success",
+        "product_id": product.id,
+        "old_price": round(old_price, 2),
+        "new_price": new_price,
+        "alert_triggered": alert.message if alert else "Price drop recorded",
+    }
+
 class TrackRequest(BaseModel):
     url: str
 
